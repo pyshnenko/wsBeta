@@ -1,0 +1,95 @@
+		<div class="autorisation">
+			<form name="register" method="post">
+				<h3 id="avt" class="avtHed">Авторизация</h3>
+				<label class="avtText">Логин</label>
+				<input class="avtInp" type="text" name="userName" required/></br>
+				<label class="avtText">Пароль</label>
+				<input class="avtInp" type="password" name="userPass" required/>
+				<button type="submit" id="submit" name="keyReg" value="send">Отправить</button>
+			</form>
+		</div>
+		<script>
+			let socket = new WebSocket("wss://spamigor.site:8080", 'echo-protocol');
+			socket.onopen = function(e) {
+				console.log('Соккет открыт');
+				socket.send('us: hello');
+			};
+			socket.onclose = function(e) {
+				console.log('соккет закрыт')
+			};
+			socket.onmessage = function(event) {
+				console.log(event.data);
+				if (event.data.substr(0,5) == 'date:') {
+					let buf = JSON.parse(event.data.substr(6));
+					document.getElementById('date1').innerHTML=buf[0];	
+					document.getElementById('date2').innerHTML=buf[1];	
+					document.getElementById('date3').innerHTML=buf[2];	
+					document.getElementById('date4').innerHTML=buf[3];	
+					document.getElementById('date5').innerHTML=buf[4];	
+					document.getElementById('date6').innerHTML=buf[5];	
+					document.getElementById('date7').innerHTML=buf[6];					
+				}
+				else if (event.data == 'st: connect') {
+					document.getElementById('rectangle1').style.backgroundColor='green';
+					document.getElementById('statusText1').innerHTML='Дворецкий активен';
+					document.getElementById('restartButton').hidden=false;
+				}
+				else if (event.data == 'st: disconnect') {
+					document.getElementById('rectangle1').style.backgroundColor='red';
+					document.getElementById('statusText1').innerHTML='Дворецкий неактивен';
+					document.getElementById('restartButton').hidden=true;
+				}
+				else if (event.data == 'we: connect') {
+					document.getElementById('rectangle2').style.backgroundColor='green';
+					document.getElementById('statusText2').innerHTML='Метеоролог активен';
+				}
+				else if (event.data == 'we: disconnect') {
+					document.getElementById('rectangle2').style.backgroundColor='red';
+					document.getElementById('statusText2').innerHTML='Метеоролог неактивен';
+				}
+				else if (event.data == 'no: connect') {
+					document.getElementById('rectangle3').style.backgroundColor='green';
+					document.getElementById('statusText3').innerHTML='Задачник активен';
+				}
+				else if (event.data == 'no: disconnect') {
+					document.getElementById('rectangle3').style.backgroundColor='red';
+					document.getElementById('statusText3').innerHTML='Задачник неактивен';
+				}
+				else if (event.data == 'wi: connect') {
+					document.getElementById('rectangle4').style.backgroundColor='green';
+					document.getElementById('statusText4').innerHTML='Список желаний активен';
+				}
+				else if (event.data == 'wi: disconnect') {
+					document.getElementById('rectangle4').style.backgroundColor='red';
+					document.getElementById('statusText4').innerHTML='Список желаний неактивен';
+				}
+				else if (event.data == 's1: connect') {
+					document.getElementById('rectangle5').style.backgroundColor='green';
+					document.getElementById('statusText5').innerHTML='4011 активен';
+				}
+				else if (event.data == 's1: disconnect') {
+					document.getElementById('rectangle5').style.backgroundColor='red';
+					document.getElementById('statusText5').innerHTML='4011 неактивен';
+				}
+				else if (event.data == 's2: connect') {
+					document.getElementById('rectangle6').style.backgroundColor='green';
+					document.getElementById('statusText6').innerHTML='4013 активен';
+				}
+				else if (event.data == 's2: disconnect') {
+					document.getElementById('rectangle6').style.backgroundColor='red';
+					document.getElementById('statusText6').innerHTML='4013 неактивен';
+				}
+				else if (event.data == 's3: connect') {
+					document.getElementById('rectangle7').style.backgroundColor='green';
+					document.getElementById('statusText7').innerHTML='4013/1587 активен';
+				}
+				else if (event.data == 's3: disconnect') {
+					document.getElementById('rectangle7').style.backgroundColor='red';
+					document.getElementById('statusText7').innerHTML='4013/1587 неактивен';
+				}
+			};
+
+			function sendMessageToServer() {
+				socket.send('us: reboot')
+			};
+		</script>
