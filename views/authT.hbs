@@ -21,13 +21,10 @@
 				console.log(event.data);
 				if (event.data.substr(0,5) == 'date:') {
 					let buf = JSON.parse(event.data.substr(6));
-					document.getElementById('date1').innerHTML=buf[0];	
-					document.getElementById('date2').innerHTML=buf[1];	
-					document.getElementById('date3').innerHTML=buf[2];	
-					document.getElementById('date4').innerHTML=buf[3];	
-					document.getElementById('date5').innerHTML=buf[4];	
-					document.getElementById('date6').innerHTML=buf[5];	
-					document.getElementById('date7').innerHTML=buf[6];					
+					for (let i=0; i<buf.length; i++) {
+						let date = new Date(buf[i]);
+						document.getElementById(`date${i+1}`).innerHTML=date.toLocaleString();	
+					}						
 				}
 				else if (event.data == 'st: connect') {
 					document.getElementById('rectangle1').style.backgroundColor='green';
@@ -73,19 +70,19 @@
 				}
 				else if (event.data == 's2: connect') {
 					document.getElementById('rectangle6').style.backgroundColor='green';
-					document.getElementById('statusText6').innerHTML='4013 активен';
+					document.getElementById('statusText6').innerHTML='4014 активен';
 				}
 				else if (event.data == 's2: disconnect') {
 					document.getElementById('rectangle6').style.backgroundColor='red';
-					document.getElementById('statusText6').innerHTML='4013 неактивен';
+					document.getElementById('statusText6').innerHTML='4014 неактивен';
 				}
 				else if (event.data == 's3: connect') {
 					document.getElementById('rectangle7').style.backgroundColor='green';
-					document.getElementById('statusText7').innerHTML='4013/1587 активен';
+					document.getElementById('statusText7').innerHTML='4014/1587 активен';
 				}
 				else if (event.data == 's3: disconnect') {
 					document.getElementById('rectangle7').style.backgroundColor='red';
-					document.getElementById('statusText7').innerHTML='4013/1587 неактивен';
+					document.getElementById('statusText7').innerHTML='4014/1587 неактивен';
 				}
 			};
 

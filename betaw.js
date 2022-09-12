@@ -134,7 +134,8 @@ wsServer.on('request', function(request) {
             console.log('Received Message: ' + message.utf8Data);
 			let buf = message.utf8Data;
 			let bufDat, bufAddr = message.utf8Data.substr(0,2);
-			if (bufAddr === 'pi') {
+			if (bufAddr === 'ng') connection.sendUTF('ressived');
+			else if (bufAddr === 'pi') {
 				bufDat = message.utf8Data.substr(4);
 				console.log(bufDat);
 				date[0] = new Date(Number(bufDat));
@@ -287,8 +288,6 @@ wsServer.on('request', function(request) {
 			site4013Con = false;
 			for (let i=0; i<users.length; i++)
             	users[i].sendUTF('s2: disconnect');
-		}
-		else if (connection == site40131587) {
 			console.log('site 4013/1587 disconnected');
 			site40131587Con = false;
 			for (let i=0; i<users.length; i++)
