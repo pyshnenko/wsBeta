@@ -13,6 +13,26 @@ a {
     color: black;
 }
 
+#cont {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    min-width: 100px;
+    min-height: 300px;
+    max-height: 400px;
+    border: 2px solid;
+    border-radius: 25px;
+    box-shadow: 0 0 20px;
+    margin: 10px;
+    padding: 10px;
+}
+
+.messBox {
+	overflow: auto;
+	max-height: 400px;
+	padding-right: 10px;
+}
+
 #aboutMe {
     width: 50%;
     background-color: white;
@@ -32,6 +52,7 @@ li > a {
     display: flex;
     flex-direction: column;
     align-items: center;
+	width: 50%;
 }
 
 #submit {
@@ -164,6 +185,9 @@ li > a {
 	#aboutMe {
 		width: 90%;
 		font-size: large;
+	}
+	.funcElem {
+		width: 80%;
 	}
 }
 

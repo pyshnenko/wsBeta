@@ -176,6 +176,7 @@ wsServer.on('request', function(request) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
 						users[i].sendUTF('we: connect');
+						users[i].sendUTF(`TM: ${bufAddr}: connect`);
 					}
 				}
 			}
@@ -189,6 +190,7 @@ wsServer.on('request', function(request) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
 						users[i].sendUTF('no: connect');
+						users[i].sendUTF(`TM: ${bufAddr}: connect`);
 					}
 				}
 			}
@@ -202,6 +204,7 @@ wsServer.on('request', function(request) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
 						users[i].sendUTF('wi: connect');
+						users[i].sendUTF(`TM: ${bufAddr}: connect`);
 					}
 				}
 			}
@@ -215,11 +218,12 @@ wsServer.on('request', function(request) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
 						users[i].sendUTF('s1: connect');
+						users[i].sendUTF(`TM: ${bufAddr}: connect`);
 					}
 				}
 			}
 			else if (bufAddr === 's2') {
-				console.log('site 4013 connected');
+				console.log('site 4014 connected');
 				bufDat = message.utf8Data.substr(4);
 				date[5] = new Date(Number(bufDat));
 				site4013 = connection;
@@ -228,6 +232,7 @@ wsServer.on('request', function(request) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
 						users[i].sendUTF('s2: connect');
+						users[i].sendUTF(`TM: ${bufAddr}: connect`);
 					}
 				}
 			}
@@ -241,18 +246,40 @@ wsServer.on('request', function(request) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
 						users[i].sendUTF('s3: connect');
+						users[i].sendUTF(`TM: ${bufAddr}: connect`);
 					}
 				}
 			}
-            //connection.sendUTF(message.utf8Data);
+			else if (bufAddr === 'TM') {
+				console.log('tecnical message');
+				let subAddr = message.utf8Data.substr(4,2);
+				switch(subAddr) {
+					case 'pi': subAddr = 'raspberry: ';
+					case 'we': subAddr = 'weather bot: ';
+					case 'no': subAddr = 'note bot: ';
+					case 'wi': subAddr = 'wish bot: ';
+					case 's1': subAddr = '4011: ';
+					case 's2': subAddr = '4014: ';
+					case 's3': subAddr = '4014/1587: ';
+				}
+				bufDat = message.utf8Data.substr(8);
+				console.log(`TM: ${subAddr}${bufDat}`);
+				if (userConnected) {
+					for (let i=0; i<users.length; i++) {
+						users[i].sendUTF(`TM: ${subAddr}${bufDat}`);
+					}
+				}
+			}
         }
     });
     connection.on('close', function(reasonCode, description) {
 		if (connection == clients) {
 			console.log('bot disconnected');
 			connectPi = false;
-			for (let i=0; i<users.length; i++)
+			for (let i=0; i<users.length; i++) {
 				users[i].sendUTF('st: disconnect');
+				users[i].sendUTF(`TM: st: disconnect`);
+			}
 		}
 		else if (users.includes(connection)) {
 			console.log('user disconnected');
@@ -262,36 +289,48 @@ wsServer.on('request', function(request) {
 		else if (connection == weather) {
 			console.log('weather disconnected');
 			weatherCon = false;
-			for (let i=0; i<users.length; i++)
+			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('we: disconnect');
+				users[i].sendUTF(`TM: we: disconnect`);
+			}
 		}
 		else if (connection == note) {
 			console.log('note disconnected');
 			noteCon = false;
-			for (let i=0; i<users.length; i++)
+			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('no: disconnect');
+				users[i].sendUTF(`TM: no: disconnect`);
+			}
 		}
 		else if (connection == wish) {
 			console.log('wish disconnected');
 			wishCon = false;
-			for (let i=0; i<users.length; i++)
+			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('wi: disconnect');
+				users[i].sendUTF(`TM: wi: disconnect`);
+			}
 		}
 		else if (connection == site4011) {
 			console.log('site 4011 disconnected');
 			site4011Con = false;
-			for (let i=0; i<users.length; i++)
+			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('s1: disconnect');
+				users[i].sendUTF(`TM: s1: disconnect`);
+			}
 		}
 		else if (connection == site4013) {
 			console.log('site 4013 disconnected');
 			site4013Con = false;
-			for (let i=0; i<users.length; i++)
+			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('s2: disconnect');
+				users[i].sendUTF(`s2: we: disconnect`);
+			}
 			console.log('site 4013/1587 disconnected');
 			site40131587Con = false;
-			for (let i=0; i<users.length; i++)
+			for (let i=0; i<users.length; i++) {
 				users.sendUTF('s3: disconnect');
+				users[i].sendUTF(`TM: s3: disconnect`);
+			}
 		}
         else console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
