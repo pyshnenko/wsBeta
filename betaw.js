@@ -9,6 +9,20 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 const urlencodedParser = express.urlencoded({extended: true});
 const PORT = 8080;
+const nodemailer = require('nodemailer')
+
+let testEmailAccount = nodemailer.createTestAccount()
+
+let transporter = nodemailer.createTransport({
+  host: 'smtp.mail.ru',
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'mazepaspam@mail.ru',
+    pass: '18nK7ijCnMbv3wbKu0e6',
+  },
+})
+
 const redis = new Redis({
   port: 6379,
   host: "45.89.66.91",
@@ -30,6 +44,7 @@ let weatherCon = false;
 let site4011Con = false;
 let site4013Con = false;
 let site40131587Con = false;
+let mailCheck = true;
 
 let note;
 let site4011;
@@ -39,6 +54,7 @@ let wish;
 let weather;
 let clients; //pi
 let users = [];  //тут бы массив сделать
+let history = [];
 
 let options = {
 	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/privkey.pem"),//("/home/spamigor/node/certHttps/key.pem"),
@@ -154,6 +170,8 @@ wsServer.on('request', function(request) {
 				bufDat = message.utf8Data.substr(4);
 				if (users.indexOf(connection) == (-1)) users.push(connection);
 				userConnected = true;
+				for (let i=0; i<history.length; i++)
+					connection.sendUTF(`hi: ${history[i]}`);
 				for (let i=0; i<users.length; i++) {
 					users[i].sendUTF(`date: ${JSON.stringify(date)}`);
 					users[i].sendUTF(connectPi ? 'st: connect' : 'st: disconnect');
@@ -165,6 +183,8 @@ wsServer.on('request', function(request) {
 					users[i].sendUTF(site40131587Con ? 's3: connect' : 's3: disconnect');
 				}
 				if ((bufDat === 'reboot')&&(connectPi)) clients.sendUTF('reboot');
+				if ((bufDat === 'restart')&&(connectPi)) clients.sendUTF('restart');
+				if ((bufDat === 'gitPull')&&(connectPi)) clients.sendUTF('gitPull');
 			}
 			else if (bufAddr === 'we') {
 				console.log('weather bot connected');
@@ -175,8 +195,7 @@ wsServer.on('request', function(request) {
 				if (userConnected) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
-						users[i].sendUTF('we: connect');
-						users[i].sendUTF(`TM: ${bufAddr}: connect`);
+						users[i].sendUTF(`we: ${(new Date()).toLocaleString()} - connect`);
 					}
 				}
 			}
@@ -189,8 +208,7 @@ wsServer.on('request', function(request) {
 				if (userConnected) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
-						users[i].sendUTF('no: connect');
-						users[i].sendUTF(`TM: ${bufAddr}: connect`);
+						users[i].sendUTF(`no: ${(new Date()).toLocaleString()} - connect`);
 					}
 				}
 			}
@@ -203,8 +221,7 @@ wsServer.on('request', function(request) {
 				if (userConnected) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
-						users[i].sendUTF('wi: connect');
-						users[i].sendUTF(`TM: ${bufAddr}: connect`);
+						users[i].sendUTF(`wi: ${(new Date()).toLocaleString()} - connect`);
 					}
 				}
 			}
@@ -217,8 +234,7 @@ wsServer.on('request', function(request) {
 				if (userConnected) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
-						users[i].sendUTF('s1: connect');
-						users[i].sendUTF(`TM: ${bufAddr}: connect`);
+						users[i].sendUTF(`s1: ${(new Date()).toLocaleString()} - connect`);
 					}
 				}
 			}
@@ -231,8 +247,7 @@ wsServer.on('request', function(request) {
 				if (userConnected) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
-						users[i].sendUTF('s2: connect');
-						users[i].sendUTF(`TM: ${bufAddr}: connect`);
+						users[i].sendUTF(`s2: ${(new Date()).toLocaleString()} - connect`);
 					}
 				}
 			}
@@ -245,8 +260,7 @@ wsServer.on('request', function(request) {
 				if (userConnected) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`date: ${JSON.stringify(date)}`);
-						users[i].sendUTF('s3: connect');
-						users[i].sendUTF(`TM: ${bufAddr}: connect`);
+						users[i].sendUTF(`s3: ${(new Date()).toLocaleString()} - connect`);
 					}
 				}
 			}
@@ -254,19 +268,21 @@ wsServer.on('request', function(request) {
 				console.log('tecnical message');
 				let subAddr = message.utf8Data.substr(4,2);
 				switch(subAddr) {
-					case 'pi': subAddr = 'raspberry: ';
-					case 'we': subAddr = 'weather bot: ';
-					case 'no': subAddr = 'note bot: ';
-					case 'wi': subAddr = 'wish bot: ';
-					case 's1': subAddr = '4011: ';
-					case 's2': subAddr = '4014: ';
-					case 's3': subAddr = '4014/1587: ';
+					case 'pi': {subAddr = 'raspberry: '; break}
+					case 'st': {subAddr = 'raspberry: '; break}
+					case 'we': {subAddr = 'weather bot: '; break}
+					case 'no': {subAddr = 'note bot: '; break}
+					case 'wi': {subAddr = 'wish bot: '; break}
+					case 's1': {subAddr = '4011: '; break}
+					case 's2': {subAddr = '4014: '; break}
+					case 's3': {subAddr = '4014/1587: '; break}
 				}
 				bufDat = message.utf8Data.substr(8);
 				console.log(`TM: ${subAddr}${bufDat}`);
 				if (userConnected) {
 					for (let i=0; i<users.length; i++) {
-						users[i].sendUTF(`TM: ${subAddr}${bufDat}`);
+						users[i].sendUTF(`TM: ${(new Date()).toLocaleString()} - ${subAddr}${bufDat}`);
+						historyAdd(`${(new Date()).toLocaleString()} - ${subAddr}${bufDat}`);
 					}
 				}
 			}
@@ -276,9 +292,22 @@ wsServer.on('request', function(request) {
 		if (connection == clients) {
 			console.log('bot disconnected');
 			connectPi = false;
+			if (mailCheck) {
+				transporter.sendMail({
+					from: '<mazepaspam@mail.ru>',
+					to: 'pyshnenko94@yandex.ru',
+					subject: 'Потеряна связь с сервером',
+					text: 'Потеряна связь с сервером Raspberry',
+					html:
+					'Потеряна связь с сервером <strong>Raspberry</strong>. <a href="https://spamigor.site:8080">статус</a>',
+				});
+				mailCheck = false;
+				setTimeout(() => mailCheck=true, 15*60*1000);
+			}
 			for (let i=0; i<users.length; i++) {
 				users[i].sendUTF('st: disconnect');
-				users[i].sendUTF(`TM: st: disconnect`);
+				users[i].sendUTF(`TM: st: ${(new Date()).toLocaleString()} - disconnect`);
+				historyAdd(`st: ${(new Date()).toLocaleString()} - disconnect`);
 			}
 		}
 		else if (users.includes(connection)) {
@@ -291,7 +320,8 @@ wsServer.on('request', function(request) {
 			weatherCon = false;
 			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('we: disconnect');
-				users[i].sendUTF(`TM: we: disconnect`);
+				users[i].sendUTF(`TM: we: ${(new Date()).toLocaleString()} - disconnect`);
+				historyAdd(`we: ${(new Date()).toLocaleString()} - disconnect`);
 			}
 		}
 		else if (connection == note) {
@@ -299,7 +329,8 @@ wsServer.on('request', function(request) {
 			noteCon = false;
 			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('no: disconnect');
-				users[i].sendUTF(`TM: no: disconnect`);
+				users[i].sendUTF(`TM: no: ${(new Date()).toLocaleString()} - disconnect`);
+				historyAdd(`no: ${(new Date()).toLocaleString()} - disconnect`);
 			}
 		}
 		else if (connection == wish) {
@@ -307,7 +338,8 @@ wsServer.on('request', function(request) {
 			wishCon = false;
 			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('wi: disconnect');
-				users[i].sendUTF(`TM: wi: disconnect`);
+				users[i].sendUTF(`TM: wi: ${(new Date()).toLocaleString()} - disconnect`);
+				historyAdd(`wi: ${(new Date()).toLocaleString()} - disconnect`);
 			}
 		}
 		else if (connection == site4011) {
@@ -315,7 +347,8 @@ wsServer.on('request', function(request) {
 			site4011Con = false;
 			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('s1: disconnect');
-				users[i].sendUTF(`TM: s1: disconnect`);
+				users[i].sendUTF(`TM: s1: ${(new Date()).toLocaleString()} - disconnect`);
+				historyAdd(`s1: ${(new Date()).toLocaleString()} - disconnect`);
 			}
 		}
 		else if (connection == site4013) {
@@ -323,13 +356,15 @@ wsServer.on('request', function(request) {
 			site4013Con = false;
 			for (let i=0; i<users.length; i++) {
             	users[i].sendUTF('s2: disconnect');
-				users[i].sendUTF(`s2: we: disconnect`);
+				users[i].sendUTF(`s2: we: ${(new Date()).toLocaleString()} - disconnect`);
+				historyAdd(`s2: ${(new Date()).toLocaleString()} - disconnect`);
 			}
 			console.log('site 4013/1587 disconnected');
 			site40131587Con = false;
 			for (let i=0; i<users.length; i++) {
 				users.sendUTF('s3: disconnect');
-				users[i].sendUTF(`TM: s3: disconnect`);
+				users[i].sendUTF(`TM: s3: ${(new Date()).toLocaleString()} - disconnect`);
+				historyAdd(`s3: ${(new Date()).toLocaleString()} - disconnect`);
 			}
 		}
         else console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
@@ -340,3 +375,9 @@ wsServer.on('request', function(request) {
 server.listen(PORT, () => {
 	console.log(`serever is runing at port ${PORT}`);
 });
+
+function historyAdd (buf) {
+	history.push(buf);
+	while (history.length>10)
+		history.splice(0,1);
+}

@@ -19,7 +19,7 @@ a {
     background-color: white;
     min-width: 100px;
     min-height: 300px;
-    max-height: 400px;
+    max-height: 350px;
     border: 2px solid;
     border-radius: 25px;
     box-shadow: 0 0 20px;
@@ -27,10 +27,15 @@ a {
     padding: 10px;
 }
 
+li {
+    font-size: 16px;
+}	
+
 .messBox {
-	overflow: auto;
-	max-height: 400px;
-	padding-right: 10px;
+    overflow: auto;
+    max-height: 350px;
+    padding-right: 10px;
+    font-size: 16px;
 }
 
 #aboutMe {
@@ -84,17 +89,43 @@ li > a {
 	font-family: none;
 	box-shadow: 0 0 25px;
 	background-color: white;
+	text-align: center;
+}
+
+.sysButton {
+	font-size: 22px;
+    font-family: cursive;
+    border: 3px solid green;
+    border-radius: 40px;
+    box-shadow: 0 0 20px green;
+    background-color: green;
+    margin: 10px;
+    padding: 10px;
+}
+
+#inButt {
+	
+}
+
+.sysButton > p {
+	color: #FFA240;
 }
 
 #restartButton {
-	font-size: 22px;
-    font-family: cursive;
+	background-color: red;
     border: 3px solid red;
-    border-radius: 40px;
     box-shadow: 0 0 20px red;
-    background-color: red;
-    margin: 20px;
-    padding: 20px;
+}
+
+#restartButton > p {
+	color: #5CCDC9;
+}
+
+#buttons {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    align-content: center;
 }
 
 .autorisation {
@@ -143,6 +174,26 @@ li > a {
 		flex-direction: row;
 		justify-content: space-around;
 	}
+	
+	.sysButton {
+		font-size: 18px;
+		font-family: cursive;
+		border: 3px solid green;
+		border-radius: 40px;
+		box-shadow: 0 0 20px green;
+		background-color: green;
+		margin: 5px;
+		padding: 0px 10px;
+	}
+	#tokenPos {
+		margin: 5px;
+		font-size: 14px;	
+	}
+	
+	.avtorithationPlace {
+		padding: 0px 10px;
+		font-size: 18px;
+	}
 }
 
 @media screen and (max-aspect-ratio: 85/90) {
@@ -189,6 +240,30 @@ li > a {
 	.funcElem {
 		width: 80%;
 	}
+}
+
+#restartButton:hover {
+	box-shadow: 0 0 20px black;
+}
+
+#restartButton:focus {
+	box-shadow: 0 0 20px black;
+}
+
+#restartButton:active {
+	box-shadow: 0 0 0px black;
+}
+
+.sysButton:hover {
+	box-shadow: 0 0 20px black;
+}
+
+.sysButton:focus {
+	box-shadow: 0 0 20px black;
+}
+
+.sysButton:active {
+	box-shadow: 0 0 0px black;
 }
 
 #avt {

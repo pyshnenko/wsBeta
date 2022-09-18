@@ -6,9 +6,22 @@
 			<div id="tokenPos">
 				<h3 class="avtHed" id="tokenText">Токен, {{userToken}}</h3>
 			</div>
-			<button onclick="sendMessageToServer()" id="restartButton" hidden>
-				ПЕРЕЗАГРУЗКА ДВОРЕЦКОГО
-			</button>
+			<div id="buttons">
+				<button onclick="sendMessageToServer()" class="sysButton" id="restartButton" hidden>
+					<p>ПЕРЕЗАГРУЗКА ДВОРЕЦКОГО</p>
+				</button>
+				<div id="inButt">
+					<button onclick="sendRestart()" class="sysButton" id="lowRestartButton" hidden>
+						<p>РЕСТАРТ ДВОРЕЦКОГО</p>
+					</button>
+					<button onclick="sendGitPull()" class="sysButton" id="gitPull" hidden>
+						<p>GIT PULL</p>
+					</button>
+					<button onclick="sendGitPush()" class="sysButton" id="gitPush" hidden>
+						<p>GIT PUSH</p>
+					</button>
+				</div>
+			</div>
 			<div id="cont"></div>
        
 			<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -40,11 +53,17 @@
 						document.getElementById('rectangle1').style.backgroundColor='green';
 						document.getElementById('statusText1').innerHTML='Дворецкий активен';
 						document.getElementById('restartButton').hidden=false;
+						document.getElementById('lowRestartButton').hidden=false;
+						document.getElementById('gitPull').hidden=false;
+						document.getElementById('gitPush').hidden=false;
 					}
 					else if (event.data == 'st: disconnect') {
 						document.getElementById('rectangle1').style.backgroundColor='red';
 						document.getElementById('statusText1').innerHTML='Дворецкий неактивен';
 						document.getElementById('restartButton').hidden=true;
+						document.getElementById('lowRestartButton').hidden=true;
+						document.getElementById('gitPull').hidden=true;
+						document.getElementById('gitPush').hidden=true;
 					}
 					else if (event.data == 'we: connect') {
 						document.getElementById('rectangle2').style.backgroundColor='green';
@@ -95,8 +114,14 @@
 						document.getElementById('statusText7').innerHTML='4014/1587 неактивен';
 					}
 					else if (event.data.substr(0,2) === 'TM') {
-						boxMessage.push(event.data.substr(4));
+						boxMessage.splice(0, 0, event.data.substr(4));
 						root.render( <MessageList messages={boxMessage} /> );
+						if (document.getElementById("messText").offsetHeight>400) document.getElementById("messText").scrollTop=document.getElementById("messText").scrollHeight;
+					}
+					else if (event.data.substr(0,2) === 'hi') {						
+						boxMessage.splice(0, 0, event.data.substr(4));
+						root.render( <MessageList messages={boxMessage} /> );
+						if (document.getElementById("messText").offsetHeight>400) document.getElementById("messText").scrollTop=document.getElementById("messText").scrollHeight;
 					}
 				};
 				
@@ -108,11 +133,23 @@
 						</li>
 					);
 					return (
-						<div class="messBox"><ul>{listItems}</ul></div>
+						<div class="messBox"><ul id="messText">{listItems}</ul></div>
 					);
 				}
 
 				function sendMessageToServer() {
 					socket.send('us: reboot')
+				};
+
+				function sendRestart() {
+					socket.send('us: restart')
+				};
+
+				function sendGitPull() {
+					socket.send('us: gitPull')
+				};
+
+				function sendGitPush() {
+					socket.send('us: gitPush')
 				};
 			</script>
