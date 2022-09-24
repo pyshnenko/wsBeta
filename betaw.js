@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require("fs");
 const express = require("express");
 const hbs = require("hbs");
@@ -9,19 +10,19 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 const urlencodedParser = express.urlencoded({extended: true});
 const PORT = 8080;
-const nodemailer = require('nodemailer')
+const nodemailer = require('nodemailer');
 
-let testEmailAccount = nodemailer.createTestAccount()
+const MongoClient = require("mongodb").MongoClient;
+const url = "spamigor.site:27017";
+const username = encodeURIComponent(process.env.MONGOLOGIN);
+const password = encodeURIComponent(process.env.MONGOPASS);
+const authMechanism = "DEFAULT";
+const uri =`mongodb://${username}:${password}@${url}/?authMechanism=${authMechanism}`;
+const mongoClient = new MongoClient(uri);
+const db = mongoClient.db("loggerBeta");
+const collection = db.collection("log");
 
-let transporter = nodemailer.createTransport({
-  host: 'smtp.mail.ru',
-  port: 465,
-  secure: true,
-  auth: {
-    user: 'mazepaspam@mail.ru',
-    pass: '18nK7ijCnMbv3wbKu0e6',
-  },
-})
+let testEmailAccount = nodemailer.createTestAccount();
 
 const redis = new Redis({
   port: 6379,
@@ -44,7 +45,6 @@ let weatherCon = false;
 let site4011Con = false;
 let site4013Con = false;
 let site40131587Con = false;
-let mailCheck = true;
 
 let note;
 let site4011;
@@ -53,14 +53,27 @@ let site40131587;
 let wish;
 let weather;
 let clients; //pi
-let users = [];  //тут бы массив сделать
-let history = [];
+let users = [];  
+let history = readN();
 
 let options = {
-	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/privkey.pem"),//("/home/spamigor/node/certHttps/key.pem"),
-    cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/fullchain.pem"),//("/home/spamigor/node/certHttps/cert.pem"),
+	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/privkey.pem"),
+    cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/fullchain.pem"),
 	ca: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/chain.pem")
 };
+
+let transporter = nodemailer.createTransport({
+  host: 'smtp.mail.ru',
+  port: 465,
+  secure: true,
+  key: options.key,
+  cert: options.sert,
+  ca: options.ca,
+  auth: {
+    user: 'mazepaspam@mail.ru',
+    pass: '18nK7ijCnMbv3wbKu0e6',
+  },
+});
 
 let test = 'no data';
 
@@ -102,12 +115,19 @@ app.post("/", urlencodedParser, async function (request, response) {
 });
 
 app.get("/", async function(request, response){
-	/*let subbuf = (connectPi ? '<font color="#00FF00"><h2>Бот активен</h2></font>' : '<font color="#FF0000"><h2>Бот не активен</h2></font>');
-	let buf = `<h2>Привет user!</h2>\n${subbuf}\n<h2>обновлено: ${date}</h2>`;
-	response.send(buf);*/
 	if (request.cookies.token != undefined ) {
 		const value = await redis.get(request.cookies.token);
-		if (value == null )	response.render("generalT.hbs", {regWindow: true, userData: false, date1: date[0], date2: date[1], date3: date[2], date4: date[3], date5: date[4], date6: date[5], date7: date[6]});
+		if (value == null )	response.render("generalT.hbs", {
+			regWindow: true, 
+			userData: false, 
+			date1: date[0], 
+			date2: date[1], 
+			date3: date[2], 
+			date4: date[3], 
+			date5: date[4], 
+			date6: date[5], 
+			date7: date[6]
+		});
 		else response.render("generalT.hbs", {
 			regWindow: false,
 			userData: true,
@@ -123,7 +143,17 @@ app.get("/", async function(request, response){
 		});
 	}
 	else {
-		response.render("generalT.hbs", {regWindow: true, userData: false, date1: date[0], date2: date[1], date3: date[2], date4: date[3], date5: date[4], date6: date[5], date7: date[6]});
+		response.render("generalT.hbs", {
+			regWindow: true, 
+			userData: false, 
+			date1: date[0], 
+			date2: date[1], 
+			date3: date[2], 
+			date4: date[3], 
+			date5: date[4], 
+			date6: date[5], 
+			date7: date[6]
+		});
 	}
 });
 
@@ -185,6 +215,7 @@ wsServer.on('request', function(request) {
 				if ((bufDat === 'reboot')&&(connectPi)) clients.sendUTF('reboot');
 				if ((bufDat === 'restart')&&(connectPi)) clients.sendUTF('restart');
 				if ((bufDat === 'gitPull')&&(connectPi)) clients.sendUTF('gitPull');
+				if ((bufDat === 'gitPush')&&(connectPi)) clients.sendUTF('gitPush');
 			}
 			else if (bufAddr === 'we') {
 				console.log('weather bot connected');
@@ -279,10 +310,10 @@ wsServer.on('request', function(request) {
 				}
 				bufDat = message.utf8Data.substr(8);
 				console.log(`TM: ${subAddr}${bufDat}`);
+				historyAdd(`${(new Date()).toLocaleString()} - ${subAddr}${bufDat}`);
 				if (userConnected) {
 					for (let i=0; i<users.length; i++) {
 						users[i].sendUTF(`TM: ${(new Date()).toLocaleString()} - ${subAddr}${bufDat}`);
-						historyAdd(`${(new Date()).toLocaleString()} - ${subAddr}${bufDat}`);
 					}
 				}
 			}
@@ -292,18 +323,18 @@ wsServer.on('request', function(request) {
 		if (connection == clients) {
 			console.log('bot disconnected');
 			connectPi = false;
-			if (mailCheck) {
-				transporter.sendMail({
-					from: '<mazepaspam@mail.ru>',
-					to: 'pyshnenko94@yandex.ru',
-					subject: 'Потеряна связь с сервером',
-					text: 'Потеряна связь с сервером Raspberry',
-					html:
-					'Потеряна связь с сервером <strong>Raspberry</strong>. <a href="https://spamigor.site:8080">статус</a>',
-				});
-				mailCheck = false;
-				setTimeout(() => mailCheck=true, 15*60*1000);
-			}
+			setTimeout(() => {
+				if (!connectPi) {
+					transporter.sendMail({
+						from: '<mazepaspam@mail.ru>',
+						to: 'pyshnenko94@yandex.ru',
+						subject: 'Потеряна связь с сервером',
+						text: 'Потеряна связь с домашним сервером',
+						html:
+						`Потеряна связь с домашним сервером в ${(new Date()).toString()}. <a href="https://spamigor.site:8080">статус</a>`,
+					});
+				}
+			}, 30*1000);
 			for (let i=0; i<users.length; i++) {
 				users[i].sendUTF('st: disconnect');
 				users[i].sendUTF(`TM: st: ${(new Date()).toLocaleString()} - disconnect`);
@@ -376,8 +407,38 @@ server.listen(PORT, () => {
 	console.log(`serever is runing at port ${PORT}`);
 });
 
-function historyAdd (buf) {
-	history.push(buf);
-	while (history.length>10)
-		history.splice(0,1);
+async function historyAdd(buf) {
+	try {
+		await mongoClient.connect()
+		let data = {text: buf};
+		let result = await collection.insertOne(data);
+		console.log(result);
+		let bufResult = await collection.find().toArray();
+		while (bufResult.length>200)
+		{
+			let id = await bufResult[0]._id;
+			await collection.deleteOne({_id: id});
+			bufResult = await collection.find().toArray();
+		}
+		history = bufResult.map((buffer) => { return buffer.text });
+	}
+	catch(e) {
+		console.log('mongodb error: ' + e);
+	}	
+	finally {
+		await mongoClient.close();
+	}
+}
+
+async function readN() {
+	let result;
+	try {
+		await mongoClient.connect();
+		result = await collection.find().toArray();
+		console.log(result);
+	}
+	catch (e) {console.log('read err: ' + e);}
+	finally { await mongoClient.close(); }
+	let exitData = result.map((realData) => {return realData.text})
+	return exitData;
 }

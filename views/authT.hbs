@@ -18,7 +18,7 @@
 				console.log('соккет закрыт')
 			};
 			socket.onmessage = function(event) {
-				console.log(event.data);
+				if (event.data.substr(0,2)==='TM') console.log(event.data);
 				if (event.data.substr(0,5) == 'date:') {
 					let buf = JSON.parse(event.data.substr(6));
 					for (let i=0; i<buf.length; i++) {
@@ -83,6 +83,14 @@
 				else if (event.data == 's3: disconnect') {
 					document.getElementById('rectangle7').style.backgroundColor='red';
 					document.getElementById('statusText7').innerHTML='4014/1587 неактивен';
+				}
+				else if (event.data == 's4: connect') {
+					document.getElementById('rectangle8').style.backgroundColor='green';
+					document.getElementById('statusText8').innerHTML='Список покупок активен';
+				}
+				else if (event.data == 's4: disconnect') {
+					document.getElementById('rectangle8').style.backgroundColor='red';
+					document.getElementById('statusText8').innerHTML='Список покупок неактивен';
 				}
 			};
 

@@ -41,7 +41,7 @@
 					console.log('соккет закрыт')
 				};
 				socket.onmessage = function(event) {
-					console.log(event.data);
+					if (event.data.substr(0,2)==='TM') console.log(event.data);
 					if (event.data.substr(0,5) == 'date:') {
 						let buf = JSON.parse(event.data.substr(6));
 						for (let i=0; i<buf.length; i++) {
@@ -122,6 +122,14 @@
 						boxMessage.splice(0, 0, event.data.substr(4));
 						root.render( <MessageList messages={boxMessage} /> );
 						if (document.getElementById("messText").offsetHeight>400) document.getElementById("messText").scrollTop=document.getElementById("messText").scrollHeight;
+					}
+					else if (event.data == 's4: connect') {
+						document.getElementById('rectangle8').style.backgroundColor='green';
+						document.getElementById('statusText8').innerHTML='Список покупок активен';
+					}
+					else if (event.data == 's4: disconnect') {
+						document.getElementById('rectangle8').style.backgroundColor='red';
+						document.getElementById('statusText8').innerHTML='Список покупок неактивен';
 					}
 				};
 				
