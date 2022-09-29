@@ -329,7 +329,7 @@ wsServer.on('request', function(request) {
 						from: '<mazepaspam@mail.ru>',
 						to: 'pyshnenko94@yandex.ru',
 						subject: 'Потеряна связь с сервером',
-						text: 'Потеряна связь с домашним сервером',
+						text: `Потеряна связь с домашним сервером в ${(new Date()).toString()}.`,
 						html:
 						`Потеряна связь с домашним сервером в ${(new Date()).toString()}. <a href="https://spamigor.site:8080">статус</a>`,
 					});
