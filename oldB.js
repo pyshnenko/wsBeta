@@ -8,9 +8,9 @@ let rebTrig = true;
 let clients;
 
 let options = {
-	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/privkey.pem"),//("/home/spamigor/node/certHttps/key.pem"),
-    cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/fullchain.pem"),//("/home/spamigor/node/certHttps/cert.pem"),
-	ca: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/chain.pem")
+	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/privkey.pem"),//("/home/spamigor/node/certHttps/key.pem"),
+    cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/fullchain.pem"),//("/home/spamigor/node/certHttps/cert.pem"),
+	ca: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/chain.pem")
 };
 
 var server = https.createServer(options, function(request, response) {

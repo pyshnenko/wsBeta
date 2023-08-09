@@ -13,7 +13,7 @@ const PORT = process.env.PORT;
 const nodemailer = require('nodemailer');
 
 const MongoClient = require("mongodb").MongoClient;
-const url = "spamigor.site:27017";
+const url = "spamigor.ru:27017";
 const username = encodeURIComponent(process.env.MONGOLOGIN);
 const password = encodeURIComponent(process.env.MONGOPASS);
 const authMechanism = "DEFAULT";
@@ -57,9 +57,9 @@ let users = [];
 let history = readN();
 
 let options = {
-	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/privkey.pem"),
-    cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/fullchain.pem"),
-	ca: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/chain.pem")
+	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/privkey.pem"),
+    cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/fullchain.pem"),
+	ca: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/chain.pem")
 };
 
 let transporter = nodemailer.createTransport({
@@ -112,7 +112,7 @@ app.post("/", urlencodedParser, async function (request, response) {
 		});			
 	}	
 	console.log(request.rawHeaders[3])
-  response.redirect(request.rawHeaders[3]==='control.spamigor.site'?'https://control.spamigor.site':`https://spamigor.site:${PORT}`);
+  response.redirect(request.rawHeaders[3]==='control.spamigor.ru'?'https://control.spamigor.ru':`https://spamigor.ru:${PORT}`);
 });
 
 app.get("/", async function(request, response){
@@ -334,7 +334,7 @@ wsServer.on('request', function(request) {
 						subject: 'Потеряна связь с сервером',
 						text: `Потеряна связь с домашним сервером в ${(new Date()).toString()}.`,
 						html:
-						`Потеряна связь с домашним сервером в ${(new Date()).toString()}. <a href="https://spamigor.site:8080">статус</a>`,
+						`Потеряна связь с домашним сервером в ${(new Date()).toString()}. <a href="https://spamigor.ru:8080">статус</a>`,
 					});
 				}
 			}, 30*1000);
