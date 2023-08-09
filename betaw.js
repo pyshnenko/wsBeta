@@ -57,9 +57,9 @@ let users = [];
 let history = readN();
 
 let options = {
-	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/privkey.pem"),
-    cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/fullchain.pem"),
-	ca: fs.readFileSync("/etc/letsencrypt/live/spamigor.site/chain.pem")
+	key: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/privkey.pem"),
+    cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/fullchain.pem"),
+	ca: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/chain.pem")
 };
 
 let transporter = nodemailer.createTransport({
