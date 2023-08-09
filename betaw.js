@@ -9,7 +9,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 const urlencodedParser = express.urlencoded({extended: true});
-const PORT = 8080;
+const PORT = process.env.PORT;
 const nodemailer = require('nodemailer');
 
 const MongoClient = require("mongodb").MongoClient;
@@ -26,8 +26,8 @@ let testEmailAccount = nodemailer.createTestAccount();
 
 const redis = new Redis({
   port: 6379,
-  host: "45.89.66.91",
-  password: "ugD6s2xz"
+  host: process.env.IP,
+  password: process.env.REDISPASS
 });
 const WebSocketServer = require('websocket').server;
 const https = require('https');
@@ -111,10 +111,13 @@ app.post("/", urlencodedParser, async function (request, response) {
 			maxAge: (3600 * 24 * 30 * 1000),
 		});			
 	}	
-	response.redirect('https://spamigor.site:'+PORT);
+	console.log(request.rawHeaders[3])
+  response.redirect(request.rawHeaders[3]==='control.spamigor.site'?'https://control.spamigor.site':`https://spamigor.site:${PORT}`);
 });
 
 app.get("/", async function(request, response){
+    console.log(Object.keys(request));
+    console.log(request.rawHeaders[3])
 	if (request.cookies.token != undefined ) {
 		const value = await redis.get(request.cookies.token);
 		if (value == null )	response.render("generalT.hbs", {

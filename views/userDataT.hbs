@@ -32,7 +32,7 @@
 				let root = ReactDOM.createRoot(document.getElementById("cont"));
 				root.render( <MessageList messages={boxMessage} /> );
 						
-				let socket = new WebSocket("wss://spamigor.site:8080", 'echo-protocol');
+				let socket = new WebSocket(`wss://${document.location.host}`, 'echo-protocol');
 				socket.onopen = function(e) {
 					console.log('Соккет открыт');
 					socket.send('us: hello');
