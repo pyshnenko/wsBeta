@@ -22,14 +22,13 @@ const mongoClient = new MongoClient(uri);
 const db = mongoClient.db("loggerBeta");
 const collection = db.collection("log");
 
-let testEmailAccount = nodemailer.createTestAccount();
-
 const redis = new Redis({
   port: 6379,
   host: process.env.IP,
   password: process.env.REDISPASS
 });
 const WebSocketServer = require('websocket').server;
+//const http = require('http');
 const https = require('https');
 
 let salt;
@@ -61,19 +60,6 @@ let options = {
     cert: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/fullchain.pem"),
 	ca: fs.readFileSync("/etc/letsencrypt/live/spamigor.ru/chain.pem")
 };
-
-let transporter = nodemailer.createTransport({
-  host: 'smtp.mail.ru',
-  port: 465,
-  secure: true,
-  key: options.key,
-  cert: options.sert,
-  ca: options.ca,
-  auth: {
-    user: 'mazepaspam@mail.ru',
-    pass: '18nK7ijCnMbv3wbKu0e6',
-  },
-});
 
 let test = 'no data';
 
@@ -169,6 +155,7 @@ app.get("/style.css", function(request, response){
 }); 
 
 let server = https.createServer(options, app);
+//let server = http.createServer(app);
 
 wsServer = new WebSocketServer({
     httpServer: server,
@@ -323,19 +310,35 @@ wsServer.on('request', function(request) {
         }
     });
     connection.on('close', function(reasonCode, description) {
+		console.log('some connection close')
 		if (connection == clients) {
 			console.log('bot disconnected');
 			connectPi = false;
-			setTimeout(() => {
+			setTimeout(async () => {
 				if (!connectPi) {
-					transporter.sendMail({
-						from: '<mazepaspam@mail.ru>',
-						to: 'pyshnenko94@yandex.ru',
-						subject: 'Потеряна связь с сервером',
-						text: `Потеряна связь с домашним сервером в ${(new Date()).toString()}.`,
-						html:
-						`Потеряна связь с домашним сервером в ${(new Date()).toString()}. <a href="https://spamigor.ru:8080">статус</a>`,
-					});
+					try {
+						let transporter = nodemailer.createTransport({
+							host: 'smtp.mail.ru',
+							port: 465,
+							secure: true,
+							//key: options.key,
+							//cert: options.sert,
+							//ca: options.ca,
+							auth: {
+							user: 'mazepaspam@mail.ru',
+							pass: '18nK7ijCnMbv3wbKu0e6',
+							},
+						});
+						console.log('send message')
+						transporter.sendMail({
+							from: '<mazepaspam@mail.ru>',
+							to: 'pyshnenko94@yandex.ru',
+							subject: 'Потеряна связь с сервером',
+							text: `Потеряна связь с домашним сервером в ${(new Date()).toString()}.`,
+							html:
+							`Потеряна связь с домашним сервером в ${(new Date()).toString()}. <a href="https://spamigor.ru:8080">статус</a>`,
+						}, function (e) {console.log(e)});
+					} catch (e) {console.log (e)}
 				}
 			}, 30*1000);
 			for (let i=0; i<users.length; i++) {
